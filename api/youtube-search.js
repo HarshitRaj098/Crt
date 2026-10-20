@@ -6,8 +6,10 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) return res.status(503).json({ error: 'YouTube API key is not configured on the server.' });
-  const q = typeof req.query.q === 'string' ? req.query.q.trim().slice(0, 200) : '';
+  const q = typeof req.query.q === 'string' ? req.query.q.trim().replace(/\s+/g, ' ').slice(0, 200) : '';
   if (!q) return res.status(400).json({ error: 'Missing search query.' });
+  // Let the CDN reuse identical searches briefly to reduce latency and YouTube API quota usage.
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
   try {
     const url = new URL('https://www.googleapis.com/youtube/v3/search');
     url.search = new URLSearchParams({ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'10', q, key }).toString();
