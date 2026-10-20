@@ -28,7 +28,7 @@ iframe{border:0;width:100%;height:100%;background:#101a13}.viewport{position:rel
 .footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 3px 0;color:#b1b7b0;font-size:10px}.footer a{color:#9cc890;text-decoration:none}
 @media(max-width:650px){body{padding:10px}.tv{padding:13px;border-radius:24px}.layout{grid-template-columns:minmax(0,1fr) 67px;gap:10px}.screen-shell{padding:7px;border-radius:20px}.screen{min-height:310px;aspect-ratio:3/4;border-radius:45% / 4%}.side{gap:12px}.brand{font-size:10px}.brand small{font-size:6px}.knob{width:39px;height:39px}.knob:after{height:9px}.knob-label{font-size:7px;margin-top:-7px}.knob-row{gap:6px}.knob-row .knob{width:26px;height:26px}.speaker{gap:3px}.speaker span{height:3px}.controls{grid-template-columns:1fr}.control-main{flex-wrap:wrap}.url{flex-basis:100%}.btn{flex:1}.status{font-size:8px}.screenbar{height:29px;font-size:8px}.home{padding:16px}.home h1{font-size:30px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-</style>
+.yt-api-panel{position:fixed;z-index:1000;inset:5% 4%;background:#081117f5;color:#d8faff;border:1px solid #31cfe8;box-shadow:0 0 0 9999px #000b;padding:14px;overflow:auto;font:12px ui-monospace,monospace}.yt-api-panel form{display:flex;gap:8px;margin:12px 0}.yt-api-panel input{min-width:0;flex:1;padding:10px;background:#02080b;color:#d8faff;border:1px solid #287b89}.yt-api-results{display:grid;gap:8px}.yt-api-item{display:grid;grid-template-columns:110px 1fr;gap:10px;text-align:left;background:#0c1b22;color:#d8faff;border:1px solid #21444b;padding:8px}.yt-api-item img{width:100%;aspect-ratio:16/9;object-fit:cover}.yt-api-item strong{color:#7df0ff}.yt-api-close{float:right;padding:8px;background:#17313a;color:white;border:1px solid #31cfe8}@media(min-width:700px){.yt-api-panel{inset:10% 18%}}</style>
 </head>
 <body>
 <main class="app">
@@ -64,7 +64,7 @@ iframe{border:0;width:100%;height:100%;background:#101a13}.viewport{position:rel
     <div class="controls">
       <div class="control-main">
         <input id="address" class="url" type="text" value="https://example.com" aria-label="Website or YouTube search" placeholder="Enter URL or search YouTube…">
-        <button class="btn primary" id="go">TUNE IN ↗</button>
+        <button class="btn primary" id="go">TUNE IN ↗</button><button class="btn youtube" id="apiYoutubeSearch">API SEARCH ▶</button>
         <button class="btn" id="homeBtn">HOME</button>
       </div>
       <button class="btn" id="mediaBtn">MEDIA FILE</button><input id="mediaFile" type="file" accept="video/*,image/*" hidden><button class="btn youtube" id="glitchBtn" aria-label="Glitch effect is permanently enabled" title="Glitch effect is always on">⚡ GLITCH: ALWAYS ON</button>
@@ -178,6 +178,16 @@ function tuneIn() {
     }
   }, 5000);
 }
+let ytApiPanel=null;
+document.getElementById('apiYoutubeSearch').addEventListener('click',()=>{
+ if(ytApiPanel){ytApiPanel.remove();ytApiPanel=null;return;}
+ ytApiPanel=document.createElement('section');ytApiPanel.className='yt-api-panel';
+ ytApiPanel.innerHTML='<button class="yt-api-close">CLOSE ×</button><h2>▶ YOUTUBE API SEARCH</h2><p>Search results open as individual videos inside the CRT screen.</p><form><input placeholder="Search YouTube videos…" required><button class="btn primary">SEARCH</button></form><p class="yt-api-message">Ready.</p><div class="yt-api-results"></div>';
+ document.body.append(ytApiPanel);ytApiPanel.querySelector('.yt-api-close').onclick=()=>{ytApiPanel.remove();ytApiPanel=null;};
+ const form=ytApiPanel.querySelector('form'),input=form.querySelector('input'),msg=ytApiPanel.querySelector('.yt-api-message'),results=ytApiPanel.querySelector('.yt-api-results');
+ input.value=address.value.trim()&&!address.value.includes('://')?address.value.trim():'';
+ form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='Searching…';results.replaceChildren();try{const u=new URL('/api/youtube-search',location.origin);u.searchParams.set('q',input.value.trim());const res=await fetch(u);const data=await res.json();if(!res.ok)throw Error(data.error||'HTTP '+res.status);if(!data.items?.length){msg.textContent='No videos found.';return;}msg.textContent=data.items.length+' videos found. Tap one to play.';for(const item of data.items){const b=document.createElement('button');b.className='yt-api-item';const img=document.createElement('img');img.src=item.thumbnail||'';img.alt='';const meta=document.createElement('div'),title=document.createElement('strong'),desc=document.createElement('p');title.textContent=item.title;desc.textContent=item.channelTitle;meta.append(title,desc);b.append(img,meta);b.onclick=()=>{ytApiPanel.remove();ytApiPanel=null;setMode('youtube');address.value='https://www.youtube.com/watch?v='+encodeURIComponent(item.videoId);tuneIn();};results.append(b);}}catch(err){msg.textContent='YouTube API error: '+err.message;}});input.focus();
+});
 document.getElementById('go').addEventListener('click', tuneIn);
 address.addEventListener('keydown', e => { if (e.key === 'Enter') tuneIn(); });
 document.getElementById('homeBtn').addEventListener('click', () => setMode('home'));
