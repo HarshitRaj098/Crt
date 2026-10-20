@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https: http:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob:; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https: http: https://www.googleapis.com;">
 <title>CRT TV Browser</title>
 <style>
 :root{color-scheme:dark;--ink:#d8f7d0;--muted:#87a18a;--green:#b8ff9c;--edge:#6c796a;--panel:#171e18;--black:#050807;--cyan:#00d9ff;--pink:#ff5ca8}
@@ -27,7 +27,7 @@ webview{position:absolute;inset:0;width:100%;height:100%;background:#111;z-index
 .tracking{position:absolute;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;background:linear-gradient(to bottom,transparent 0 43%,#00eaff12 44%,#00eaff30 45%,#00dfff12 47%,transparent 48%,#00dfff20 49%,#00dfff08 51%,transparent 53%,#ff5ca80a 56%,#ff5ca838 58%,#ff5ca812 60%,#9beaff22 63%,#8de9ff30 67%,#8de9ff10 72%,transparent 79%);opacity:.8}
 .chassis{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 4px 0;color:#444b43;font-weight:900;font-size:11px}.led{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e44848;margin-right:6px;box-shadow:0 0 7px #e44848}.bottom{padding:0 16px 10px;display:flex;justify-content:space-between;color:#647664;font-size:10px;gap:10px}
 @media(max-width:700px){header{padding:10px}.toolbar{gap:5px;padding:8px}.nav{padding:7px}.tools .nav:nth-child(2){display:none}main{padding:7px}.tv{padding:10px;border-radius:18px}.glass{border-width:6px;border-radius:15px 15px 28px 28px}.chassis{font-size:9px}.status{font-size:9px}}
-</style>
+.yt-panel{position:fixed;z-index:9999;inset:8% 8%;background:#0b100c;border:1px solid #76a86e;box-shadow:0 0 0 9999px #000b,0 0 35px #00d9ff33;padding:18px;overflow:auto;color:#d8f7d0}.yt-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.yt-head h2{margin:0;color:#b8ff9c}.yt-search-row{display:flex;gap:8px;margin:14px 0}.yt-search-row input{flex:1;min-width:0;background:#050807;color:#d8f7d0;border:1px solid #536852;padding:11px}.yt-results{display:grid;gap:10px}.yt-result{display:grid;grid-template-columns:160px 1fr;gap:12px;padding:10px;border:1px solid #293b2a;background:#111811;cursor:pointer;text-align:left;color:inherit}.yt-result img{width:100%;aspect-ratio:16/9;object-fit:cover}.yt-result strong{display:block;color:#b8ff9c;margin-bottom:6px}.yt-result p{margin:0;color:#a8b9a5}.yt-close{background:#202d21;border:1px solid #536852;color:#d8f7d0;padding:8px 12px;cursor:pointer}@media(max-width:600px){.yt-panel{inset:2%;padding:10px}.yt-result{grid-template-columns:100px 1fr}}</style>
 </head>
 <body>
 <header><div class="brand">CRT // BROWSER<small>CHROMIUM ENGINE · ANALOG DISPLAY</small></div><div class="status" id="status">BOOTING SIGNAL…</div></header>
@@ -35,7 +35,7 @@ webview{position:absolute;inset:0;width:100%;height:100%;background:#111;z-index
 <div class="toolbar">
 <button class="nav" id="back" title="Back">◀</button><button class="nav" id="forward" title="Forward">▶</button><button class="nav" id="reload" title="Reload">⟳</button>
 <form class="address-wrap" id="navForm"><input id="address" autocomplete="off" spellcheck="false" placeholder="Enter URL or search the web…"><button class="go" type="submit">TUNE IN ↵</button></form>
-<div class="tools"><button class="nav" id="home" title="Home">⌂ HOME</button><button class="nav" id="external" title="Open current page in default browser">↗ EXTERNAL</button></div>
+<div class="tools"><button class="nav" id="ytSearch" title="Search YouTube with Data API">▶ YOUTUBE</button><button class="nav" id="home" title="Home">⌂ HOME</button><button class="nav" id="external" title="Open current page in default browser">↗ EXTERNAL</button></div>
 </div>
 <main><section class="tv"><div class="bezel-label"><span>ANALOG VISUAL SYSTEM</span><span>MODEL CRT-01</span></div><div class="glass" id="glass"><div class="no-signal" id="welcome"><div><strong>OLD GLASS.<br>NEW SIGNAL.</strong><p>Full Chromium browsing inside your CRT. Enter a website or search query above. Tabs, navigation, sessions, and downloads are handled by Electron.</p></div></div><div class="tracking"></div></div><div class="chassis"><span>PHOSPHOR DISPLAY · NTSC</span><span><i class="led"></i><span id="engine">ENGINE STARTING</span></span><span>CRT TV BROWSER</span></div></section></main>
 <div class="bottom"><span id="pageStatus">READY</span><span>LOCAL DESKTOP APP · NOT THE VERCEL WEB PREVIEW</span></div>
@@ -73,6 +73,28 @@ document.getElementById('reload').onclick=()=>{const t=active();if(t?.view)t.vie
 document.getElementById('home').onclick=()=>navigate('https://www.google.com');
 document.getElementById('external').onclick=async()=>{const t=active();if(t?.url&&window.crtApp)await window.crtApp.openExternal(t.url);};
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='l'){e.preventDefault();address.focus();address.select();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='t'){e.preventDefault();newTab('');}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='w'){e.preventDefault();if(activeId!==null)closeTab(activeId);}if(e.key==='Escape'&&document.activeElement===address)address.blur();});
+let ytPanel=null;
+function youtubePanel(){
+ if(ytPanel){ytPanel.remove();ytPanel=null;return;}
+ ytPanel=document.createElement('section');ytPanel.className='yt-panel';
+ ytPanel.innerHTML='<div class="yt-head"><h2>▶ YOUTUBE SIGNAL SEARCH</h2><button class="yt-close" id="ytClose">CLOSE ×</button></div><p>Search videos using YouTube Data API v3. The API key is stored only in this local app profile, not committed to GitHub.</p><form class="yt-search-row" id="ytForm"><input id="ytQuery" placeholder="Search videos…" required><button class="go" type="submit">SEARCH</button></form><div id="ytMessage">Enter a search query to begin.</div><div class="yt-results" id="ytResults"></div>';
+ document.body.append(ytPanel);ytPanel.querySelector('#ytClose').onclick=()=>{ytPanel.remove();ytPanel=null;};
+ const keyStore='crt.youtube.apiKey';
+ ytPanel.querySelector('#ytForm').addEventListener('submit',async e=>{
+  e.preventDefault();const q=ytPanel.querySelector('#ytQuery').value.trim();const msg=ytPanel.querySelector('#ytMessage'),out=ytPanel.querySelector('#ytResults');out.innerHTML='';msg.textContent='Searching YouTube…';
+  let key=localStorage.getItem(keyStore);
+  if(!key){key=prompt('Paste your YouTube Data API key. It will be saved in this app on this device only.');if(!key){msg.textContent='API key required. You can still browse YouTube normally.';return;}key=key.trim();localStorage.setItem(keyStore,key);}
+  try{
+   const url=new URL('https://www.googleapis.com/youtube/v3/search');url.search=new URLSearchParams({part:'snippet',type:'video',maxResults:'10',q,key}).toString();
+   const res=await fetch(url);const data=await res.json();
+   if(!res.ok)throw new Error(data.error?.message||'YouTube API request failed ('+res.status+')');
+   const items=data.items||[];if(!items.length){msg.textContent='No videos found.';return;}
+   msg.textContent=items.length+' results · click a video to open it in a browser tab';
+   items.forEach(item=>{const id=item.id?.videoId;if(!id)return;const title=item.snippet?.title||'Untitled video';const channel=item.snippet?.channelTitle||'YouTube';const desc=item.snippet?.description||'';const b=document.createElement('button');b.className='yt-result';const img=document.createElement('img');img.src=item.snippet?.thumbnails?.medium?.url||item.snippet?.thumbnails?.default?.url||'';img.alt='';const info=document.createElement('div'),strong=document.createElement('strong'),p=document.createElement('p');strong.textContent=title;p.textContent=channel+' — '+desc.slice(0,180);info.append(strong,p);b.append(img,info);b.onclick=()=>{newTab('https://www.youtube.com/watch?v='+encodeURIComponent(id));};out.append(b);});
+  }catch(err){msg.textContent='Search failed: '+err.message+'. Check API key, YouTube Data API v3 enablement, and quota.';}
+ });
+}
+document.getElementById('ytSearch').onclick=youtubePanel;
 newTab('');
 </script>
 </body>
