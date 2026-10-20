@@ -193,7 +193,7 @@ function tuneIn() {
   // Never label a generic iframe load as an embedding failure; provide an explicit external fallback.
   const fallback = document.createElement('div');
   fallback.id='crt-frame-fallback';
-  fallback.style.cssText='position:absolute;z-index:7;left:10px;right:10px;bottom:10px;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#08100fee;border:1px solid #4b7b78;color:#d9fff5;font:11px monospace;text-align:center';
+  fallback.style.cssText='position:absolute;z-index:7;left:10px;right:10px;bottom:10px;display:none;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#08100fee;border:1px solid #4b7b78;color:#d9fff5;font:11px monospace;text-align:center';
   const fallbackText=document.createElement('span');
   fallbackText.textContent=yt ? 'If playback is refused, open this video in YouTube.' : 'If this page does not load, open it directly.';
   const fallbackButton=document.createElement('button');
@@ -217,17 +217,7 @@ function tuneIn() {
   frame.style.zIndex = '1';
   frame.style.width = '100%';
   frame.style.height = '100%';
-  const external = document.createElement('button');
-  external.className = 'btn';
-  external.textContent = 'OPEN IN FULL BROWSER ↗';
-  external.style.cssText = 'position:absolute;right:8px;bottom:8px;z-index:8;background:#101910ee;max-width:95%;white-space:normal';
-  if (yt) external.textContent = 'OPEN IN YOUTUBE ↗';
-  external.addEventListener('click', () => {
-    const target = yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v=' + encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;
-    const opened = window.open(target, '_blank');
-    if (!opened) window.location.assign(target);
-  });
-  viewport.appendChild(external);
+  // Keep the player controls unobstructed. External fallback is shown only when YouTube reports an error.
   displayStatus.textContent = 'LOADING PAGE…';
   let pageLoaded = false;
   frame.addEventListener('load', () => {
