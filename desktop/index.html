@@ -54,6 +54,10 @@ view.addEventListener('did-navigate',e=>{t.url=e.url;if(t.id===activeId)updateNa
 view.addEventListener('did-navigate-in-page',e=>{t.url=e.url;if(t.id===activeId)updateNav();});
 view.addEventListener('page-title-updated',e=>{t.title=e.title||'Untitled';renderTabs();});
 view.addEventListener('new-window',e=>{if(e.url)newTab(e.url);});
+view.addEventListener('page-favicon-updated',()=>{if(t.id===activeId)renderTabs();});
+view.addEventListener('render-process-gone',e=>{t.loading=false;if(t.id===activeId){statusEl.textContent='TAB CRASHED';pageStatus.textContent='This page stopped unexpectedly. Press reload to try again.';updateNav();}});
+view.addEventListener('unresponsive',()=>{if(t.id===activeId)statusEl.textContent='PAGE NOT RESPONDING';});
+view.addEventListener('responsive',()=>{if(t.id===activeId)statusEl.textContent='PAGE RESPONDED';});
 view.addEventListener('will-navigate',()=>{});
 view.addEventListener('console-message',e=>{if(e.level>=2)pageStatus.textContent='PAGE CONSOLE ERROR';});
 view.addEventListener('did-fail-load',e=>{if(e.errorCode!==-3){t.loading=false;if(t.id===activeId){statusEl.textContent='NAVIGATION FAILED';pageStatus.textContent=e.errorDescription||'Could not load page';}}});
