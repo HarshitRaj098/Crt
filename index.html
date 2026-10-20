@@ -250,6 +250,11 @@ function tuneIn() {
   // Render the CRT wash above the video pixels but keep it click-through so player controls work.
   tracking.style.zIndex = '4';
   viewport.appendChild(tracking);
+  // Darken the edges like a convex CRT glass face without blocking player interaction.
+  const glassVignette=document.createElement('div');
+  glassVignette.setAttribute('aria-hidden','true');
+  glassVignette.style.cssText='position:absolute;z-index:3;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 52%,rgba(0,5,10,.10) 72%,rgba(0,3,8,.42) 100%),linear-gradient(90deg,rgba(0,4,8,.18),transparent 9%,transparent 91%,rgba(0,4,8,.18));';
+  viewport.appendChild(glassVignette);
   frame.style.position = 'absolute';
   frame.style.inset = '0';
   frame.style.zIndex = '1';
