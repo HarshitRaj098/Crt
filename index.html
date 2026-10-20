@@ -281,16 +281,20 @@ function tuneIn() {
   tracking.innerHTML='<div class="yt-tracking-line line-a"></div><div class="yt-tracking-broken"></div><div class="yt-tracking-line line-b"></div><div class="yt-tracking-lower"></div><div class="yt-tracking-pink"></div>';
   // Overlay effects are decorative only: never intercept taps intended for the iframe player.
   tracking.style.pointerEvents = 'none';
+  tracking.style.touchAction = 'none';
   // Render the CRT wash above the video pixels but keep it click-through so player controls work.
   tracking.style.zIndex = '4';
   viewport.appendChild(tracking);
   const blueGlitch=document.createElement('div');
   blueGlitch.className='yt-blue-glitch';
+  blueGlitch.style.pointerEvents='none';
+  blueGlitch.style.touchAction='none';
   blueGlitch.setAttribute('aria-hidden','true');
   viewport.appendChild(blueGlitch);
   const soundToggle=document.createElement('button');
   soundToggle.className='crt-sound-toggle';
   soundToggle.type='button';
+  soundToggle.style.touchAction='manipulation';
   soundToggle.textContent='♪ CRT SFX: TAP TO ENABLE';
   soundToggle.setAttribute('aria-pressed','false');
   soundToggle.setAttribute('aria-label','Enable or disable CRT glitch sound effects');
@@ -299,6 +303,7 @@ function tuneIn() {
   videoSoundToggle.className='crt-sound-toggle';
   videoSoundToggle.style.left='9px';
   videoSoundToggle.style.right='auto';
+  videoSoundToggle.style.touchAction='manipulation';
   videoSoundToggle.textContent='♫ VIDEO SOUND: TAP TO ENABLE';
   videoSoundToggle.setAttribute('aria-label','Enable sound for the YouTube video');
   videoSoundToggle.onclick=()=>{
@@ -362,6 +367,10 @@ function tuneIn() {
   frame.style.width = '100%';
   frame.style.height = '100%';
   frame.style.background = 'transparent';
+  // Preserve direct taps/gestures on the cross-origin YouTube player on mobile.
+  frame.style.pointerEvents = 'auto';
+  frame.style.touchAction = 'manipulation';
+  frame.style.webkitTapHighlightColor = 'transparent';
   // Keep the player controls unobstructed. External fallback is shown only when YouTube reports an error.
   displayStatus.textContent = 'LOADING PAGE…';
   let pageLoaded = false;
