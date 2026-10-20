@@ -145,11 +145,22 @@ function tuneIn() {
   viewport.appendChild(frame);
   const external = document.createElement('button');
   external.className = 'btn';
-  external.textContent = 'OPEN EXTERNALLY ↗';
-  external.style.cssText = 'position:absolute;right:8px;bottom:8px;z-index:8;background:#101910dd';
-  external.addEventListener('click', () => window.open(url, '_blank', 'noopener,noreferrer'));
+  external.textContent = 'OPEN IN FULL BROWSER ↗';
+  external.style.cssText = 'position:absolute;right:8px;bottom:8px;z-index:8;background:#101910ee;max-width:95%;white-space:normal';
+  external.addEventListener('click', () => {
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!opened) window.location.assign(url);
+  });
   viewport.appendChild(external);
-  displayStatus.textContent = 'SIGNAL TUNED';
+  displayStatus.textContent = 'LOADING PAGE…';
+  let pageLoaded = false;
+  frame.addEventListener('load', () => {
+    pageLoaded = true;
+    displayStatus.textContent = 'PAGE RESPONSE RECEIVED';
+  });
+  window.setTimeout(() => {
+    if (!pageLoaded && frame.isConnected) displayStatus.textContent = 'SITE MAY BLOCK EMBEDDING — OPEN IN FULL BROWSER';
+  }, 4500);
 }
 document.getElementById('go').addEventListener('click', tuneIn);
 address.addEventListener('keydown', e => { if (e.key === 'Enter') tuneIn(); });
