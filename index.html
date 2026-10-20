@@ -208,6 +208,11 @@ function tuneIn() {
         apiScript.src = 'https://www.youtube.com/iframe_api';
         apiScript.async = true;
         apiScript.dataset.youtubeIframeApi = 'true';
+        apiScript.onerror = () => {
+          displayStatus.textContent = 'YOUTUBE API LOAD FAILED';
+          fallbackText.textContent = 'The YouTube player API could not load. Open this video directly in YouTube.';
+          fallback.style.display = 'flex';
+        };
         document.head.appendChild(apiScript);
       }
     }
