@@ -314,6 +314,7 @@ let crtMediaURL=null;
 document.getElementById('mediaBtn').onclick=()=>document.getElementById('mediaFile').click();
 document.getElementById('mediaFile').onchange=e=>{
  const file=e.target.files?.[0];if(!file)return;
+ if(!file.type.startsWith('video/')&&!file.type.startsWith('image/')){displayStatus.textContent='UNSUPPORTED FILE — CHOOSE AN IMAGE OR VIDEO';e.target.value='';return;}
  if(crtMediaURL)URL.revokeObjectURL(crtMediaURL);crtMediaURL=URL.createObjectURL(file);
  setMode('media');viewport.innerHTML='';
  const isVideo=file.type.startsWith('video/'),src=isVideo?document.createElement('video'):new Image();
