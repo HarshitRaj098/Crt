@@ -18,9 +18,21 @@
 .screen:after{content:"";position:absolute;inset:-20%;z-index:6;pointer-events:none;background:linear-gradient(90deg,transparent 0%,#8aff8520 50%,transparent 100%);transform:translateX(-110%);animation:beam 8s linear infinite}
 @keyframes beam{to{transform:translateX(110%)}}.screen.glitch{animation:flicker .18s steps(2) infinite}.screen.glitch .screen-content{filter:hue-rotate(30deg) saturate(1.7);animation:content-jitter .22s steps(2) infinite}.screen.glitch:before{animation:scan-tear 2.7s steps(1) infinite}.screen.glitch:after{animation:beam 3.8s linear infinite}@keyframes flicker{0%,100%{opacity:1}12%{opacity:.82}18%{opacity:.98}46%{opacity:.88}52%{opacity:1}79%{opacity:.91}}@keyframes content-jitter{0%,100%{transform:translate(0,0)}20%{transform:translate(2px,-1px)}22%{transform:translate(-2px,1px)}48%{transform:translate(0,0)}71%{transform:translate(1px,0)}73%{transform:translate(-1px,0)}}@keyframes scan-tear{0%,91%,100%{clip-path:inset(0)}92%{clip-path:inset(34% 0 60% 0)}93%{clip-path:inset(68% 0 28% 0)}94%{clip-path:inset(0)}}
 .screen-content{position:absolute;inset:0;display:flex;flex-direction:column;transition:filter .2s;color:#b4f7ff;background:linear-gradient(180deg,#00151b55,#00c8f233 56%,#ff2e7d55)}
-/* Fixed VHS tracking distortion matching the reference photo */
-.screen-content::after{content:"";position:absolute;inset:0;z-index:7;pointer-events:none;background:linear-gradient(to bottom,transparent 0%,transparent 43%,rgba(0,235,255,.05) 44%,rgba(0,220,255,.24) 46%,rgba(0,210,255,.52) 49%,rgba(65,210,255,.42) 52%,rgba(255,45,165,.12) 55%,rgba(255,55,170,.66) 57.5%,rgba(255,95,195,.48) 59%,rgba(255,60,175,.12) 61%,rgba(170,235,255,.5) 64%,rgba(115,225,255,.42) 67%,rgba(100,225,255,.14) 72%,transparent 79%,transparent 100%);background-size:100% 100%;background-position:center;mix-blend-mode:screen;animation:none;filter:blur(1.4px)}
-.screen-content::before{content:"";position:absolute;left:0;right:0;top:45%;height:17%;z-index:6;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,225,255,.16) 0 2px,rgba(0,35,55,.08) 2px 4px,transparent 4px 7px);opacity:.8}
+/* Fixed analog tracking defect: broad cyan wash, broken horizontal sync lines, pink flare at lower edge */
+.screen-content::after{
+content:"";position:absolute;inset:0;z-index:7;pointer-events:none;mix-blend-mode:screen;animation:none;
+background:
+radial-gradient(ellipse 24% 5% at 61% 61%,rgba(255,72,174,.92) 0%,rgba(255,74,181,.62) 38%,rgba(255,76,180,.12) 76%,transparent 100%),
+linear-gradient(to bottom,transparent 0%,transparent 43%,rgba(0,226,255,.08) 44%,rgba(0,225,255,.25) 46%,rgba(0,225,255,.11) 47%,rgba(0,205,255,.28) 49%,rgba(0,210,255,.07) 51%,rgba(0,225,255,.22) 53%,rgba(0,225,255,.04) 55%,rgba(255,64,174,.08) 56%,rgba(255,68,178,.42) 58%,rgba(255,94,194,.22) 59.5%,rgba(145,229,255,.32) 62%,rgba(133,226,255,.52) 65%,rgba(110,222,255,.30) 69%,rgba(125,229,255,.08) 73%,transparent 79%,transparent 100%);
+filter:blur(1.2px)
+}
+.screen-content::before{
+content:"";position:absolute;left:0;right:0;top:44%;height:29%;z-index:6;pointer-events:none;opacity:.95;
+background:
+repeating-linear-gradient(to bottom,transparent 0px,rgba(0,235,255,.13) 1px,rgba(0,25,45,.10) 2px,transparent 4px,transparent 7px),
+linear-gradient(to bottom,transparent 0%,rgba(0,200,235,.14) 18%,transparent 38%,rgba(255,255,255,.10) 43%,transparent 47%,rgba(0,210,255,.12) 65%,transparent 100%);
+mix-blend-mode:screen
+}
 .screenbar{height:35px;display:flex;align-items:center;gap:8px;padding:0 12px;background:#03141bd9;border-bottom:1px solid #49c6d8;font-size:10px;letter-spacing:.1em}.screenbar .dot{width:7px;height:7px;background:#7de46d;border-radius:50%;box-shadow:0 0 8px #7de46d}
 iframe{border:0;width:100%;height:100%;background:#101a13}.viewport{position:relative;flex:1;min-height:0;overflow:hidden}.viewport:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(180deg,#00d8ff18 0%,transparent 40%,#ff328d25 100%)}.home{height:100%;padding:clamp(14px,3vw,30px);display:flex;flex-direction:column;justify-content:center;gap:16px;background:radial-gradient(ellipse at 50% 35%,#087da4,#061c28 75%)}
 .home .eyebrow{font-size:10px;letter-spacing:.22em;color:#a8f5ff}.home h1{font-size:clamp(24px,4vw,48px);line-height:.98;margin:0;color:#d4fbff;text-shadow:0 0 18px #2edcff91;letter-spacing:-.06em}.home p{font-size:12px;color:#b0eaf2;max-width:420px;line-height:1.7;margin:0}.home-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}.home-actions button{border:1px solid #4dc9de;background:#062d3a;color:#c4f5ff;padding:10px 12px;font:inherit;font-size:11px;cursor:pointer}.home-actions button:hover{background:#29482a}.ticker{font-size:9px;letter-spacing:.12em;color:#91e8f3;margin-top:auto;padding-top:12px}
