@@ -131,7 +131,7 @@ function tuneIn() {
     const u = new URL(url);
     let id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
     if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1';
+    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
     else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -166,7 +166,14 @@ function tuneIn() {
   tracking.innerHTML='<div style="position:absolute;left:-4%;top:18%;width:108%;height:2px;background:#53f4ff;opacity:.42;box-shadow:0 0 8px #00dfff"></div><div style="position:absolute;left:0;top:34%;width:100%;height:4px;background:repeating-linear-gradient(90deg,transparent 0 13px,#35eaff 14px 72px,transparent 73px 105px);opacity:.65;transform:translateX(-1%)"></div><div style="position:absolute;left:-3%;top:48%;width:106%;height:2px;background:#53f4ff;opacity:.55;box-shadow:0 0 10px #00dfff"></div><div style="position:absolute;left:0;top:69%;width:100%;height:27%;background:linear-gradient(180deg,transparent,rgba(37,220,255,.28),rgba(37,220,255,.18));"></div><div style="position:absolute;left:47%;top:69%;width:42%;height:18%;background:radial-gradient(ellipse,rgba(255,70,165,.52),transparent 70%);"></div>';
   // Overlay effects are decorative only: never intercept taps intended for the iframe player.
   tracking.style.pointerEvents = 'none';
+  // Keep the actual player fully interactive and visually above decorative CRT wash.
+  tracking.style.zIndex = '2';
   viewport.appendChild(tracking);
+  frame.style.position = 'absolute';
+  frame.style.inset = '0';
+  frame.style.zIndex = '1';
+  frame.style.width = '100%';
+  frame.style.height = '100%';
   const external = document.createElement('button');
   external.className = 'btn';
   external.textContent = 'OPEN IN FULL BROWSER ↗';
