@@ -95,6 +95,12 @@ function setMode(next) {
   } else if (next === 'static') {
     label.textContent = 'CHANNEL 04 // STATIC'; inputStatus.textContent = 'ANALOG NOISE';
     viewport.innerHTML = `<div style="height:100%;display:grid;place-items:center;background:repeating-radial-gradient(circle at 40% 60%,#8fae8c 0 1px,#111 1px 3px,#354235 3px 4px);color:#d4ffd0;text-shadow:0 0 8px #b5ff9c"><div style="background:#071008b8;padding:18px;text-align:center"><div style="font-size:11px;letter-spacing:.2em">NO SIGNAL</div><div style="font-size:30px;margin-top:8px">CH 04</div></div></div>`;
+  } else if (next === 'media') {
+    label.textContent = 'CRT OS // MEDIA SHADER'; inputStatus.textContent = 'LOCAL MEDIA';
+    displayStatus.textContent = 'SELECT MEDIA FILE';
+    viewport.innerHTML = `<div style="height:100%;display:grid;place-items:center;padding:20px;text-align:center;background:radial-gradient(ellipse,#063c4a,#06131c);color:#b8f5ff"><div><div style="font-size:12px;letter-spacing:.15em">WEBGL MEDIA PIPELINE</div><p style="font-size:11px;line-height:1.8">Choose MEDIA FILE to render an image or video through the CRT distortion shader.</p><button class="btn" id="chooseMediaInline">SELECT FILE ↗</button></div></div>`;
+    const choose = document.getElementById('chooseMediaInline');
+    if (choose) choose.addEventListener('click', () => document.getElementById('mediaFile').click());
   } else {
     label.textContent = next === 'youtube' ? 'CRT OS // YOUTUBE' : 'CRT OS // BROWSER';
     inputStatus.textContent = next === 'youtube' ? 'YOUTUBE MODE' : 'WEB BROWSER';
