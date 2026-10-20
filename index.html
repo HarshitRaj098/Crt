@@ -168,8 +168,13 @@ function tuneIn() {
   const fallbackButton=document.createElement('button');
   fallbackButton.className='btn';
   fallbackButton.textContent=yt ? 'OPEN IN YOUTUBE ↗' : 'OPEN PAGE ↗';
-  fallbackButton.onclick=()=>{const target=yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v='+encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;window.open(target,'_blank')|| (window.location.href=target);};
-  fallback.append(fallbackText,fallbackButton);viewport.appendChild(fallback);
+  fallbackButton.onclick=()=>{const target=yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v='+encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;const opened=window.open(target,'_blank','noopener,noreferrer');if(!opened)displayStatus.textContent='POP-UP BLOCKED — COPY THE ADDRESS BAR LINK';};
+  const copyButton=document.createElement('button');
+  copyButton.className='btn';
+  copyButton.textContent='COPY VIDEO LINK';
+  copyButton.style.display=yt && embedUrl.includes('/embed/') ? '' : 'none';
+  copyButton.onclick=async()=>{const target='https://www.youtube.com/watch?v='+encodeURIComponent(new URL(embedUrl).pathname.split('/').pop());try{await navigator.clipboard.writeText(target);copyButton.textContent='LINK COPIED ✓';}catch(_){address.value=target;address.focus();address.select();displayStatus.textContent='VIDEO LINK SELECTED — COPY IT MANUALLY';}};
+  fallback.append(fallbackText,fallbackButton,copyButton);viewport.appendChild(fallback);
 
   // Create fallback controls before registering asynchronous YouTube error callbacks.
   let youtubePlayerError = false;
