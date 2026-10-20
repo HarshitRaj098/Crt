@@ -87,6 +87,10 @@ const glitchBtn = document.getElementById('glitchBtn');
 let mode = 'home';
 
 function setMode(next) {
+  if (next !== 'media' && typeof crtMediaURL !== 'undefined' && crtMediaURL) {
+    URL.revokeObjectURL(crtMediaURL);
+    crtMediaURL = null;
+  }
   mode = next;
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === next));
   if (next === 'home') {
