@@ -125,6 +125,7 @@ function setMode(next) {
     if (mediaInput) mediaInput.value = '';
   }
   mode = next;
+  if (typeof window.resumeCrtShader === 'function') window.resumeCrtShader();
   document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === next));
   if (next === 'home') {
     label.textContent = 'CRT OS // HOME'; inputStatus.textContent = 'HOME CHANNEL';
@@ -422,12 +423,19 @@ screen.classList.add('glitch');
  function draw(now){
    shaderFrame=0;
    if(document.visibilityState!=='visible'||!canvas.isConnected)return;
-   // Limit the decorative overlay to 30 FPS; video playback remains independent.
-   if(now-lastDraw>=33){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.5);const W=Math.round(w*d),H=Math.round(h*d);if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);lastDraw=now;}
-   shaderFrame=requestAnimationFrame(draw);
+   // Keep the decorative shader lightweight on phones; the YouTube video runs in its own iframe.
+   if(now-lastDraw>=50){
+     const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.0);
+     const W=Math.round(w*d),H=Math.round(h*d);
+     if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}
+     gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);lastDraw=now;
+   }
+   // Stop spending GPU time on home/browser screens; restart automatically on YouTube mode.
+   if(mode==='youtube') shaderFrame=requestAnimationFrame(draw);
  }
- const resumeShader=()=>{const hidden=document.visibilityState!=='visible';document.body.classList.toggle('crt-hidden',hidden);if(!hidden&&canvas.isConnected&&!shaderFrame)shaderFrame=requestAnimationFrame(draw);else if(hidden&&shaderFrame){cancelAnimationFrame(shaderFrame);shaderFrame=0;}};
+ const resumeShader=()=>{const hidden=document.visibilityState!=='visible';document.body.classList.toggle('crt-hidden',hidden);if(!hidden&&canvas.isConnected&&mode==='youtube'&&!shaderFrame)shaderFrame=requestAnimationFrame(draw);else if((hidden||mode!=='youtube')&&shaderFrame){cancelAnimationFrame(shaderFrame);shaderFrame=0;}};
  document.addEventListener('visibilitychange',resumeShader);
+ window.resumeCrtShader=resumeShader;
  resumeShader();
 })();
 
