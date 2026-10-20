@@ -339,7 +339,7 @@ function tuneIn() {
     if(!blueGlitch.isConnected||document.visibilityState!=='visible')return;
     blueGlitch.classList.remove('active');void blueGlitch.offsetWidth;blueGlitch.classList.add('active');playCrtZap();
   };
-  const startGlitchTimer=()=>{if(!glitchTimer&&document.visibilityState==='visible')glitchTimer=window.setInterval(()=>{if(Math.random()<.38)triggerBlueGlitch();},4200);};
+  const startGlitchTimer=()=>{if(!glitchTimer&&document.visibilityState==='visible')glitchTimer=window.setInterval(()=>{if(Math.random()<.22)triggerBlueGlitch();},8500);};
   const stopGlitchTimer=()=>{if(glitchTimer)window.clearInterval(glitchTimer);glitchTimer=0;};
   const onGlitchVisibility=()=>{if(document.visibilityState==='visible')startGlitchTimer();else stopGlitchTimer();};
   document.addEventListener('visibilitychange',onGlitchVisibility);
@@ -423,10 +423,10 @@ screen.classList.add('glitch');
  function draw(now){
    shaderFrame=0;
    if(document.visibilityState!=='visible'||!canvas.isConnected)return;
-   // Keep the decorative shader lightweight on phones; the YouTube video runs in its own iframe.
-   if(now-lastDraw>=50){
-     const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.0);
-     const W=Math.round(w*d),H=Math.round(h*d);
+   // Low-cost CRT overlay: render at 12 FPS and half-resolution on mobile to prioritize video decoding.
+   if(now-lastDraw>=83){
+     const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,0.65);
+     const W=Math.max(1,Math.round(w*d)),H=Math.max(1,Math.round(h*d));
      if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}
      gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);lastDraw=now;
    }
