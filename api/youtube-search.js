@@ -8,8 +8,8 @@ export default async function handler(req, res) {
   if (!key) return res.status(503).json({ error: 'YouTube API key is not configured on the server.' });
   const q = typeof req.query.q === 'string' ? req.query.q.trim().replace(/\s+/g, ' ').slice(0, 200) : '';
   if (!q) return res.status(400).json({ error: 'Missing search query.' });
-  // Let the CDN reuse identical searches briefly to reduce latency and YouTube API quota usage.
-  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  // Do not let transient upstream failures or quota errors get cached by the CDN.
+  res.setHeader('Cache-Control', 'no-store');
   try {
     const url = new URL('https://www.googleapis.com/youtube/v3/search');
     url.search = new URLSearchParams({ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'10', q, key }).toString();
@@ -24,6 +24,8 @@ export default async function handler(req, res) {
     }
     const data = await upstream.json();
     if (!upstream.ok) return res.status(upstream.status === 403 ? 502 : upstream.status).json({ error: data?.error?.message || 'YouTube API request failed.' });
+    // Cache only successful search responses to reduce latency and YouTube API quota usage.
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     return res.status(200).json({ items:(data.items || []).map(item => ({
       videoId:item.id?.videoId, title:item.snippet?.title || 'Untitled video',
       channelTitle:item.snippet?.channelTitle || 'YouTube',
