@@ -131,7 +131,7 @@ function tuneIn() {
     const u = new URL(url);
     let id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
     if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1';
+    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&origin=' + encodeURIComponent(location.origin);
     else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -143,6 +143,13 @@ function tuneIn() {
   frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
   frame.allowFullscreen = true;
   viewport.appendChild(frame);
+  // Cross-origin sites may refuse iframe embedding. Give users a reliable direct-open fallback.
+  const fallback = document.createElement('div');
+  fallback.id='crt-frame-fallback';
+  fallback.style.cssText='position:absolute;z-index:7;left:10px;right:10px;bottom:10px;display:none;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#08100fee;border:1px solid #4b7b78;color:#d9fff5;font:11px monospace;text-align:center';
+  const fallbackText=document.createElement('span');fallbackText.textContent='THIS SITE BLOCKS EMBEDDING — OPEN IT DIRECTLY';
+  const fallbackButton=document.createElement('button');fallbackButton.className='btn';fallbackButton.textContent='OPEN PAGE ↗';fallbackButton.onclick=()=>{window.open(url,'_blank')|| (window.location.href=url);};
+  fallback.append(fallbackText,fallbackButton);viewport.appendChild(fallback);
   // Add a fixed analog tracking defect above the video without touching cross-origin pixels.
   const tracking = document.createElement('div');
   tracking.setAttribute('aria-hidden','true');
@@ -165,8 +172,11 @@ function tuneIn() {
     displayStatus.textContent = 'PAGE RESPONSE RECEIVED';
   });
   window.setTimeout(() => {
-    if (!pageLoaded && frame.isConnected) displayStatus.textContent = 'SITE MAY BLOCK EMBEDDING — OPEN IN FULL BROWSER';
-  }, 4500);
+    if (frame.isConnected && (!pageLoaded || displayStatus.textContent === 'PAGE RESPONSE RECEIVED')) {
+      displayStatus.textContent = 'IF PAGE IS BLANK, USE OPEN PAGE';
+      fallback.style.display = 'flex';
+    }
+  }, 5000);
 }
 document.getElementById('go').addEventListener('click', tuneIn);
 address.addEventListener('keydown', e => { if (e.key === 'Enter') tuneIn(); });
