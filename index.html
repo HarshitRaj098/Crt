@@ -131,7 +131,7 @@ function tuneIn() {
     const u = new URL(url);
     let id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
     if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=0';
+    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1';
     else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -139,14 +139,12 @@ function tuneIn() {
   const frame = document.createElement('iframe');
   frame.src = embedUrl;
   frame.title = 'CRT web viewport';
-  // YouTube's embedded player expects a normal HTTPS referrer. Avoid weakening it to origin-only.
+  // YouTube requires a meaningful referrer for embedded-player client identification.
   frame.referrerPolicy = 'strict-origin-when-cross-origin';
-  if (yt) {
-    frame.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; web-share');
-    frame.setAttribute('loading', 'eager');
-  }
-  frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-  frame.allowFullscreen = true;
+  frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+  frame.setAttribute('loading', 'eager');
+  frame.setAttribute('allowfullscreen', '');
+  frame.setAttribute('playsinline', '');
   viewport.appendChild(frame);
   // A cross-origin iframe cannot reveal whether its page actually played.
   // Never label a generic iframe load as an embedding failure; provide an explicit external fallback.
