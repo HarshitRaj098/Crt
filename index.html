@@ -195,7 +195,11 @@ function tuneIn() {
             onError: event => reportPlayerError(event.data)
           }
         });
-      } catch (_) { displayStatus.textContent = 'YOUTUBE PLAYER API INIT FAILED'; }
+      } catch (_) {
+        displayStatus.textContent = 'YOUTUBE PLAYER API INIT FAILED';
+        fallbackText.textContent = 'The embedded player could not initialize. Open this video directly in YouTube.';
+        fallback.style.display = 'flex';
+      }
     };
     if (window.YT?.Player) attachPlayerApi();
     else {
