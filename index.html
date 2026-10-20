@@ -178,7 +178,7 @@ function tuneIn() {
         displayStatus.textContent = 'INVALID YOUTUBE VIDEO ID';
         return;
       }
-      embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
+      embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '&widget_referrer=' + encodeURIComponent(location.origin + '/');
     } else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -188,6 +188,7 @@ function tuneIn() {
   frame.title = 'CRT web viewport';
   // YouTube requires a meaningful referrer for embedded-player client identification.
   frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
   // Make the site's cross-origin referrer policy explicit for YouTube's embedded-player client check.
   frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
   frame.setAttribute('loading', 'eager');
@@ -224,7 +225,7 @@ function tuneIn() {
       100: 'This video is removed or private.',
       101: 'The owner disabled embedded playback (error 101).',
       150: 'The owner disabled embedded playback (error 150).',
-      153: 'YouTube did not receive the required Referer/client identification (error 153).'
+      153: 'YouTube rejected the embed because it could not identify this site (error 153). Try reopening the video after refreshing; some in-app browsers strip the required referrer.'
     };
     displayStatus.textContent = 'YOUTUBE ERROR ' + code;
     fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open this video in YouTube.';
