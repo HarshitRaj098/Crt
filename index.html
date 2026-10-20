@@ -260,11 +260,11 @@ function tuneIn() {
   const soundToggle=document.createElement('button');
   soundToggle.className='crt-sound-toggle';
   soundToggle.type='button';
-  soundToggle.textContent='♪ CRT SFX: ON';
-  soundToggle.setAttribute('aria-pressed','true');
-  soundToggle.setAttribute('aria-label','Toggle CRT glitch sound effects');
+  soundToggle.textContent='♪ CRT SFX: TAP TO ENABLE';
+  soundToggle.setAttribute('aria-pressed','false');
+  soundToggle.setAttribute('aria-label','Enable or disable CRT glitch sound effects');
   viewport.appendChild(soundToggle);
-  let crtSfxEnabled=true,crtAudioContext=null,glitchTimer=0;
+  let crtSfxEnabled=false,crtAudioContext=null,glitchTimer=0;
   const playCrtZap=()=>{
     if(!crtSfxEnabled)return;
     try{
@@ -285,9 +285,18 @@ function tuneIn() {
     if(!blueGlitch.isConnected||document.visibilityState!=='visible')return;
     blueGlitch.classList.remove('active');void blueGlitch.offsetWidth;blueGlitch.classList.add('active');playCrtZap();
   };
-  glitchTimer=window.setInterval(()=>{if(Math.random()<.38)triggerBlueGlitch();},4200);
-  soundToggle.onclick=()=>{crtSfxEnabled=!crtSfxEnabled;soundToggle.textContent=crtSfxEnabled?'♪ CRT SFX: ON':'♪ CRT SFX: OFF';soundToggle.setAttribute('aria-pressed',String(crtSfxEnabled));if(crtSfxEnabled)playCrtZap();};
-  crtOverlayCleanup=()=>{if(glitchTimer)window.clearInterval(glitchTimer);glitchTimer=0;if(crtAudioContext){crtAudioContext.close().catch(()=>{});crtAudioContext=null;}};
+  const startGlitchTimer=()=>{if(!glitchTimer&&document.visibilityState==='visible')glitchTimer=window.setInterval(()=>{if(Math.random()<.38)triggerBlueGlitch();},4200);};
+  const stopGlitchTimer=()=>{if(glitchTimer)window.clearInterval(glitchTimer);glitchTimer=0;};
+  const onGlitchVisibility=()=>{if(document.visibilityState==='visible')startGlitchTimer();else stopGlitchTimer();};
+  document.addEventListener('visibilitychange',onGlitchVisibility);
+  startGlitchTimer();
+  soundToggle.onclick=()=>{
+    crtSfxEnabled=!crtSfxEnabled;
+    soundToggle.textContent=crtSfxEnabled?'♪ CRT SFX: ON':'♪ CRT SFX: OFF';
+    soundToggle.setAttribute('aria-pressed',String(crtSfxEnabled));
+    if(crtSfxEnabled)playCrtZap();
+  };
+  crtOverlayCleanup=()=>{stopGlitchTimer();document.removeEventListener('visibilitychange',onGlitchVisibility);if(crtAudioContext){crtAudioContext.close().catch(()=>{});crtAudioContext=null;}};
   // Darken the edges like a convex CRT glass face without blocking player interaction.
   const glassVignette=document.createElement('div');
   glassVignette.setAttribute('aria-hidden','true');
