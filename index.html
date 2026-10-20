@@ -183,7 +183,12 @@ function tuneIn() {
     };
     if (window.YT?.Player) attachPlayerApi();
     else {
-      window.onYouTubeIframeAPIReady = attachPlayerApi;
+      // Preserve the global callback if another feature already registered one.
+      const previousReady = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        try { if (typeof previousReady === 'function') previousReady(); } catch (_) {}
+        attachPlayerApi();
+      };
       if (!document.querySelector('script[data-youtube-iframe-api]')) {
         const apiScript = document.createElement('script');
         apiScript.src = 'https://www.youtube.com/iframe_api';
