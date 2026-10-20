@@ -355,8 +355,22 @@ document.getElementById('mediaFile').onchange=e=>{
  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  const res=gl.getUniformLocation(p,'res'),time=gl.getUniformLocation(p,'t');gl.uniform1i(gl.getUniformLocation(p,'tex'),0);
- let mediaFrame=0,mediaFailed=false;
- const draw=now=>{if(!c.isConnected)return;const d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.round(c.clientWidth*d)),h=Math.max(1,Math.round(c.clientHeight*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}if((isVideo&&src.readyState>=2)||(!isVideo&&src.complete&&src.naturalWidth)){try{gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(res,w,h);gl.uniform1f(time,now*.001);gl.drawArrays(gl.TRIANGLES,0,6);if(!mediaFailed)displayStatus.textContent='MEDIA SHADER ACTIVE';}catch(_){mediaFailed=true;displayStatus.textContent='MEDIA DECODE ERROR';}}mediaFrame=requestAnimationFrame(draw);};
+ let mediaFrame=0,mediaFailed=false,lastMediaDraw=0;
+ const draw=now=>{
+   mediaFrame=0;
+   if(!c.isConnected||document.visibilityState!=='visible')return;
+   // Keep uploaded-media shader work bounded on mobile GPUs.
+   if(now-lastMediaDraw>=33){
+     const d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.round(c.clientWidth*d)),h=Math.max(1,Math.round(c.clientHeight*d));
+     if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}
+     if((isVideo&&src.readyState>=2)||(!isVideo&&src.complete&&src.naturalWidth)){
+       try{gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(res,w,h);gl.uniform1f(time,now*.001);gl.drawArrays(gl.TRIANGLES,0,6);if(!mediaFailed)displayStatus.textContent='MEDIA SHADER ACTIVE';}
+       catch(_){mediaFailed=true;displayStatus.textContent='MEDIA DECODE ERROR';}
+     }
+     lastMediaDraw=now;
+   }
+   mediaFrame=requestAnimationFrame(draw);
+ };
  const stopMediaRender=()=>{if(mediaFrame)cancelAnimationFrame(mediaFrame);mediaFrame=0;};
  src.addEventListener('loadeddata',()=>src.play?.().catch(()=>{}));src.onload=()=>{};mediaFrame=requestAnimationFrame(draw);src.play?.().catch(()=>{});
 };
