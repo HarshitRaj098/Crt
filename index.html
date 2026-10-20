@@ -137,6 +137,10 @@ function tuneIn() {
     if (id && !u.pathname.startsWith('/results')) {
       // Strip accidental playlist/time suffixes from pasted IDs before building the embed URL.
       id = id.split(/[?&#/]/)[0];
+      if (!/^[A-Za-z0-9_-]{11}$/.test(id)) {
+        displayStatus.textContent = 'INVALID YOUTUBE VIDEO ID';
+        return;
+      }
       embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
     } else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
