@@ -67,9 +67,9 @@ iframe{border:0;width:100%;height:100%;background:#101a13}.viewport{position:rel
         <button class="btn primary" id="go">TUNE IN ↗</button>
         <button class="btn" id="homeBtn">HOME</button>
       </div>
-      <button class="btn youtube" id="glitchBtn" aria-label="Glitch effect is permanently enabled" title="Glitch effect is always on">⚡ GLITCH: ALWAYS ON</button>
+      <button class="btn" id="mediaBtn">MEDIA FILE</button><input id="mediaFile" type="file" accept="video/*,image/*" hidden><button class="btn youtube" id="glitchBtn" aria-label="Glitch effect is permanently enabled" title="Glitch effect is always on">⚡ GLITCH: ALWAYS ON</button>
     </div>
-    <div class="modes"><button class="mode active" data-mode="home">HOME</button><button class="mode" data-mode="browser">BROWSER</button><button class="mode" data-mode="youtube">▶ YOUTUBE</button><button class="mode" data-mode="static">STATIC CHANNEL</button></div>
+    <div class="modes"><button class="mode active" data-mode="home">HOME</button><button class="mode" data-mode="browser">BROWSER</button><button class="mode" data-mode="youtube">▶ YOUTUBE</button><button class="mode" data-mode="static">STATIC CHANNEL</button><button class="mode" data-mode="media">MEDIA SHADER</button></div>
     <div class="status"><span>INPUT <strong id="input-status">HOME CHANNEL</strong></span><span>DISPLAY <strong id="display-status">CRT ACTIVE</strong></span><span>API <strong>NOT REQUIRED</strong></span></div>
   </section>
   <div class="footer"><span>CRT TV v0.2 · BEIGE CRT / VHS SIGNAL</span><span>Some websites block embedding. <a href="https://www.youtube.com" target="_blank" rel="noopener">Open YouTube externally ↗</a></span></div>
@@ -172,6 +172,30 @@ screen.classList.add('glitch');
  function draw(now){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.5);const W=Math.round(w*d),H=Math.round(h*d);if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);requestAnimationFrame(draw);}
  requestAnimationFrame(draw);
 })();
+
+
+// Local image/video files can be sampled safely and distorted as real pixels in WebGL.
+let crtMediaURL=null;
+document.getElementById('mediaBtn').onclick=()=>document.getElementById('mediaFile').click();
+document.getElementById('mediaFile').onchange=e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ if(crtMediaURL)URL.revokeObjectURL(crtMediaURL);crtMediaURL=URL.createObjectURL(file);
+ setMode('media');viewport.innerHTML='';
+ const isVideo=file.type.startsWith('video/'),src=isVideo?document.createElement('video'):new Image();
+ src.src=crtMediaURL;if(isVideo){src.muted=true;src.loop=true;src.autoplay=true;src.playsInline=true;}
+ src.style.cssText='position:absolute;width:1px;height:1px;opacity:0';viewport.appendChild(src);
+ const c=document.createElement('canvas');c.style.cssText='position:absolute;inset:0;width:100%;height:100%';viewport.appendChild(c);
+ const gl=c.getContext('webgl',{alpha:false,antialias:false});if(!gl){displayStatus.textContent='WEBGL UNAVAILABLE';return;}
+ const sh=(type,code)=>{const x=gl.createShader(type);gl.shaderSource(x,code);gl.compileShader(x);if(!gl.getShaderParameter(x,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(x));return x;};
+ const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,'attribute vec2 p;varying vec2 uv;void main(){uv=(p+1.)*.5;gl_Position=vec4(p,0.,1.);}'));
+ gl.attachShader(p,sh(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 uv;uniform sampler2D tex;uniform vec2 res;uniform float t;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 q=vec2(uv.x,1.-uv.y);float y=q.y;float band=exp(-pow((y-.49)*75.,2.));float dx=(h(vec2(floor(y*145.),floor(t*4.)))-.5)*.025*band;q.x=clamp(q.x+dx,.001,.999);vec2 off=vec2(.003*band,0.);vec4 b=texture2D(tex,q);vec3 col=vec3(texture2D(tex,q+off).r,b.g,texture2D(tex,q-off).b);float cyan=exp(-pow((y-.47)*75.,2.))*.18;float pink=exp(-pow((q.x-.62)*7.,2.))*exp(-pow((y-.605)*27.,2.))*.5;float wash=smoothstep(.60,.67,y)*(1.-smoothstep(.73,.80,y))*.22;col+=vec3(0.,.68,.95)*cyan+vec3(1.,.08,.48)*pink+vec3(.38,.8,1.)*wash;col*=.93+step(.72,fract(y*res.y*.48))*.07;col+=(h(floor(q*res)+floor(t*8.))-.5)*.035;gl_FragColor=vec4(col,1.);}'));
+ gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS)){displayStatus.textContent='SHADER ERROR';return;}gl.useProgram(p);
+ const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
+ const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+ const res=gl.getUniformLocation(p,'res'),time=gl.getUniformLocation(p,'t');gl.uniform1i(gl.getUniformLocation(p,'tex'),0);
+ const draw=now=>{if(!c.isConnected)return;const d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.round(c.clientWidth*d)),h=Math.max(1,Math.round(c.clientHeight*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}if((isVideo&&src.readyState>=2)||(!isVideo&&src.complete&&src.naturalWidth)){try{gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(res,w,h);gl.uniform1f(time,now*.001);gl.drawArrays(gl.TRIANGLES,0,6);displayStatus.textContent='MEDIA SHADER ACTIVE';}catch(_){displayStatus.textContent='MEDIA DECODE ERROR';}}requestAnimationFrame(draw);};
+ src.addEventListener('loadeddata',()=>src.play?.().catch(()=>{}));src.onload=()=>{};requestAnimationFrame(draw);src.play?.().catch(()=>{});
+};
 
 function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
 updateClock(); setInterval(updateClock, 1000);
