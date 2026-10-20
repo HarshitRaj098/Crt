@@ -152,24 +152,23 @@ function tuneIn() {
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('playsinline', '');
   viewport.appendChild(frame);
-  // Keep YouTube's real error visible; iframe load events only confirm an HTTP response,
-  // not that playback succeeded.
+  // Create fallback controls before registering asynchronous YouTube error callbacks.
   let youtubePlayerError = false;
-  if (yt && embedUrl.includes('/embed/')) {
-    const reportPlayerError = code => {
-      youtubePlayerError = true;
-      const messages = {
-        2: 'Invalid video ID or player parameter.',
-        5: 'This video cannot play in the HTML5 player.',
-        100: 'This video is removed or private.',
-        101: 'The owner disabled embedded playback (error 101).',
-        150: 'The owner disabled embedded playback (error 150).',
-        153: 'YouTube did not receive the required Referer/client identification (error 153).'
-      };
-      displayStatus.textContent = 'YOUTUBE ERROR ' + code;
-      fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open this video in YouTube.';
-      fallback.style.display = 'flex';
+  const reportPlayerError = code => {
+    youtubePlayerError = true;
+    const messages = {
+      2: 'Invalid video ID or player parameter.',
+      5: 'This video cannot play in the HTML5 player.',
+      100: 'This video is removed or private.',
+      101: 'The owner disabled embedded playback (error 101).',
+      150: 'The owner disabled embedded playback (error 150).',
+      153: 'YouTube did not receive the required Referer/client identification (error 153).'
     };
+    displayStatus.textContent = 'YOUTUBE ERROR ' + code;
+    fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open this video in YouTube.';
+    fallback.style.display = 'flex';
+  };
+  if (yt && embedUrl.includes('/embed/')) {
     const attachPlayerApi = () => {
       if (!frame.isConnected || !window.YT?.Player) return;
       try {
@@ -183,7 +182,6 @@ function tuneIn() {
     };
     if (window.YT?.Player) attachPlayerApi();
     else {
-      // Preserve the global callback if another feature already registered one.
       const previousReady = window.onYouTubeIframeAPIReady;
       window.onYouTubeIframeAPIReady = () => {
         try { if (typeof previousReady === 'function') previousReady(); } catch (_) {}
