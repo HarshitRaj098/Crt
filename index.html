@@ -85,8 +85,11 @@ const inputStatus = document.getElementById('input-status');
 const displayStatus = document.getElementById('display-status');
 const glitchBtn = document.getElementById('glitchBtn');
 let mode = 'home';
+let crtOverlayCleanup=null;
+function cleanupCrtOverlay(){if(crtOverlayCleanup){crtOverlayCleanup();crtOverlayCleanup=null;}}
 
 function setMode(next) {
+  cleanupCrtOverlay();
   if (next !== 'media' && typeof crtMediaURL !== 'undefined' && crtMediaURL) {
     URL.revokeObjectURL(crtMediaURL);
     crtMediaURL = null;
@@ -284,6 +287,7 @@ function tuneIn() {
   };
   glitchTimer=window.setInterval(()=>{if(Math.random()<.38)triggerBlueGlitch();},4200);
   soundToggle.onclick=()=>{crtSfxEnabled=!crtSfxEnabled;soundToggle.textContent=crtSfxEnabled?'♪ CRT SFX: ON':'♪ CRT SFX: OFF';soundToggle.setAttribute('aria-pressed',String(crtSfxEnabled));if(crtSfxEnabled)playCrtZap();};
+  crtOverlayCleanup=()=>{if(glitchTimer)window.clearInterval(glitchTimer);glitchTimer=0;if(crtAudioContext){crtAudioContext.close().catch(()=>{});crtAudioContext=null;}};
   // Darken the edges like a convex CRT glass face without blocking player interaction.
   const glassVignette=document.createElement('div');
   glassVignette.setAttribute('aria-hidden','true');
