@@ -113,7 +113,7 @@ function setMode(next) {
 function normalizeInput(raw) {
   let value = raw.trim();
   if (!value) return '';
-  if (mode === 'youtube' && !/^https?:\/\//i.test(value) && !value.includes('.')) return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(value);
+  if (['home', 'static', 'youtube'].includes(mode) && !/^https?:\/\//i.test(value) && (!value.includes('.') || value.includes(' '))) return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(value);
   if (!/^https?:\/\//i.test(value)) {
     if (!value.includes('.') || value.includes(' ')) return 'https://www.google.com/search?q=' + encodeURIComponent(value);
     value = 'https://' + value;
