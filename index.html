@@ -126,7 +126,8 @@ function tuneIn() {
   if (mode === 'home' || mode === 'static') setMode(url.includes('youtube.com') ? 'youtube' : 'browser');
   label.textContent = mode === 'youtube' ? 'CRT OS // YOUTUBE' : 'CRT OS // BROWSER';
   inputStatus.textContent = mode === 'youtube' ? 'YOUTUBE MODE' : 'WEB BROWSER';
-  const yt = /(^|\.)youtube\.com$/.test(new URL(url).hostname) || new URL(url).hostname === 'youtu.be';
+  const inputHost = new URL(url).hostname.toLowerCase();
+  const yt = inputHost === 'youtube.com' || inputHost.endsWith('.youtube.com') || inputHost === 'youtu.be';
   let embedUrl = url;
   if (yt) {
     const u = new URL(url);
