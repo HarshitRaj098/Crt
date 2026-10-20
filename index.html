@@ -146,20 +146,22 @@ function tuneIn() {
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('playsinline', '');
   viewport.appendChild(frame);
-  // Use YouTube's official IFrame Player API to surface real player errors instead of guessing.
+  // Keep YouTube's real error visible; iframe load events only confirm an HTTP response,
+  // not that playback succeeded.
+  let youtubePlayerError = false;
   if (yt && embedUrl.includes('/embed/')) {
-    const videoId = new URL(embedUrl).pathname.split('/').pop();
     const reportPlayerError = code => {
+      youtubePlayerError = true;
       const messages = {
-        2: 'YouTube rejected the video ID or player parameter.',
-        5: 'This video cannot be played in the current HTML5 player.',
-        100: 'This video was removed or is private.',
-        101: 'The owner has disabled embedded playback for this video.',
-        150: 'The owner has disabled embedded playback for this video.',
-        153: 'YouTube rejected the player client identification. The embed referrer or client context is missing.'
+        2: 'Invalid video ID or player parameter.',
+        5: 'This video cannot play in the HTML5 player.',
+        100: 'This video is removed or private.',
+        101: 'The owner disabled embedded playback (error 101).',
+        150: 'The owner disabled embedded playback (error 150).',
+        153: 'YouTube did not receive the required Referer/client identification (error 153).'
       };
       displayStatus.textContent = 'YOUTUBE ERROR ' + code;
-      fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open the video in YouTube.';
+      fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open this video in YouTube.';
       fallback.style.display = 'flex';
     };
     const attachPlayerApi = () => {
@@ -167,7 +169,7 @@ function tuneIn() {
       try {
         new window.YT.Player(frame, {
           events: {
-            onReady: () => { displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
+            onReady: () => { if (!youtubePlayerError) displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
             onError: event => reportPlayerError(event.data)
           }
         });
@@ -228,13 +230,13 @@ function tuneIn() {
   let pageLoaded = false;
   frame.addEventListener('load', () => {
     pageLoaded = true;
-    displayStatus.textContent = 'PAGE RESPONSE RECEIVED';
+    if (!youtubePlayerError) displayStatus.textContent = 'PAGE RESPONSE RECEIVED';
   });
   window.setTimeout(() => {
     if (frame.isConnected && !pageLoaded) {
       displayStatus.textContent = 'IF PAGE IS BLANK, USE OPEN PAGE';
     } else if (frame.isConnected) {
-      displayStatus.textContent = 'CHECK PLAYER — EXTERNAL FALLBACK AVAILABLE';
+      if (!youtubePlayerError) displayStatus.textContent = 'CHECK PLAYER — EXTERNAL FALLBACK AVAILABLE';
     }
   }, 5000);
 }
