@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101412">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>CRT TV — Analog Browser</title>
 <style>
 :root{--bg:#151515;--case:#d0c9b7;--case2:#a9a28f;--edge:#e4dece;--screen:#a9c99b;--green:#b7f5a4;--amber:#f0bc68;--red:#e45c50;--ink:#18221a}
@@ -141,6 +142,7 @@ function tuneIn() {
   frame.title = 'CRT web viewport';
   // YouTube requires a meaningful referrer for embedded-player client identification.
   frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  // Make the site's cross-origin referrer policy explicit for YouTube's embedded-player client check.
   frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
   frame.setAttribute('loading', 'eager');
   frame.setAttribute('allowfullscreen', '');
