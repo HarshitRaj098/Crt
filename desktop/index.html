@@ -77,21 +77,18 @@ let ytPanel=null;
 function youtubePanel(){
  if(ytPanel){ytPanel.remove();ytPanel=null;return;}
  ytPanel=document.createElement('section');ytPanel.className='yt-panel';
- ytPanel.innerHTML='<div class="yt-head"><h2>▶ YOUTUBE SIGNAL SEARCH</h2><button class="yt-close" id="ytClose">CLOSE ×</button></div><p>Search videos using YouTube Data API v3. The API key is stored only in this local app profile, not committed to GitHub.</p><form class="yt-search-row" id="ytForm"><input id="ytQuery" placeholder="Search videos…" required><button class="go" type="submit">SEARCH</button></form><div id="ytMessage">Enter a search query to begin.</div><div class="yt-results" id="ytResults"></div>';
+ ytPanel.innerHTML='<div class="yt-head"><h2>▶ YOUTUBE SIGNAL SEARCH</h2><button class="yt-close" id="ytClose">CLOSE ×</button></div><p>Search videos using YouTube Data API v3. The API key is stored securely on the server, not in this app or GitHub.</p><form class="yt-search-row" id="ytForm"><input id="ytQuery" placeholder="Search videos…" required><button class="go" type="submit">SEARCH</button></form><div id="ytMessage">Enter a search query to begin.</div><div class="yt-results" id="ytResults"></div>';
  document.body.append(ytPanel);ytPanel.querySelector('#ytClose').onclick=()=>{ytPanel.remove();ytPanel=null;};
- const keyStore='crt.youtube.apiKey';
  ytPanel.querySelector('#ytForm').addEventListener('submit',async e=>{
   e.preventDefault();const q=ytPanel.querySelector('#ytQuery').value.trim();const msg=ytPanel.querySelector('#ytMessage'),out=ytPanel.querySelector('#ytResults');out.innerHTML='';msg.textContent='Searching YouTube…';
-  let key=localStorage.getItem(keyStore);
-  if(!key){key=prompt('Paste your YouTube Data API key. It will be saved in this app on this device only.');if(!key){msg.textContent='API key required. You can still browse YouTube normally.';return;}key=key.trim();localStorage.setItem(keyStore,key);}
   try{
-   const url=new URL('https://www.googleapis.com/youtube/v3/search');url.search=new URLSearchParams({part:'snippet',type:'video',maxResults:'10',q,key}).toString();
-   const res=await fetch(url);const data=await res.json();
-   if(!res.ok)throw new Error(data.error?.message||'YouTube API request failed ('+res.status+')');
+   const endpoint=new URL('https://crt-self.vercel.app/api/youtube-search');endpoint.searchParams.set('q',q);
+   const res=await fetch(endpoint);const data=await res.json();
+   if(!res.ok)throw new Error(data.error||'YouTube search failed ('+res.status+')');
    const items=data.items||[];if(!items.length){msg.textContent='No videos found.';return;}
    msg.textContent=items.length+' results · click a video to open it in a browser tab';
-   items.forEach(item=>{const id=item.id?.videoId;if(!id)return;const title=item.snippet?.title||'Untitled video';const channel=item.snippet?.channelTitle||'YouTube';const desc=item.snippet?.description||'';const b=document.createElement('button');b.className='yt-result';const img=document.createElement('img');img.src=item.snippet?.thumbnails?.medium?.url||item.snippet?.thumbnails?.default?.url||'';img.alt='';const info=document.createElement('div'),strong=document.createElement('strong'),p=document.createElement('p');strong.textContent=title;p.textContent=channel+' — '+desc.slice(0,180);info.append(strong,p);b.append(img,info);b.onclick=()=>{newTab('https://www.youtube.com/watch?v='+encodeURIComponent(id));};out.append(b);});
-  }catch(err){msg.textContent='Search failed: '+err.message+'. Check API key, YouTube Data API v3 enablement, and quota.';}
+   items.forEach(item=>{const id=item.videoId;if(!id)return;const b=document.createElement('button');b.className='yt-result';const img=document.createElement('img');img.src=item.thumbnail||'';img.alt='';const info=document.createElement('div'),strong=document.createElement('strong'),p=document.createElement('p');strong.textContent=item.title||'Untitled video';p.textContent=(item.channelTitle||'YouTube')+' — '+(item.description||'').slice(0,180);info.append(strong,p);b.append(img,info);b.onclick=()=>{newTab('https://www.youtube.com/watch?v='+encodeURIComponent(id));};out.append(b);});
+  }catch(err){msg.textContent='Search failed: '+err.message+'. Check the Vercel deployment and YouTube API configuration.';}
  });
 }
 document.getElementById('ytSearch').onclick=youtubePanel;
