@@ -131,7 +131,7 @@ function tuneIn() {
     const u = new URL(url);
     let id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
     if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1';
+    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=0';
     else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -139,8 +139,12 @@ function tuneIn() {
   const frame = document.createElement('iframe');
   frame.src = embedUrl;
   frame.title = 'CRT web viewport';
-  // Preserve the site's origin as the referrer for YouTube's embedded-player client checks.
+  // YouTube's embedded player expects a normal HTTPS referrer. Avoid weakening it to origin-only.
   frame.referrerPolicy = 'strict-origin-when-cross-origin';
+  if (yt) {
+    frame.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; web-share');
+    frame.setAttribute('loading', 'eager');
+  }
   frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
   frame.allowFullscreen = true;
   viewport.appendChild(frame);
