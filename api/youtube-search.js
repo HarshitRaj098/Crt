@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (!q) return res.status(400).json({ error: 'Missing search query.' });
   try {
     const url = new URL('https://www.googleapis.com/youtube/v3/search');
-    url.search = new URLSearchParams({ part:'snippet', type:'video', maxResults:'10', q, key }).toString();
+    url.search = new URLSearchParams({ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'10', q, key }).toString();
     const upstream = await fetch(url);
     const data = await upstream.json();
     if (!upstream.ok) return res.status(upstream.status === 403 ? 502 : upstream.status).json({ error: data?.error?.message || 'YouTube API request failed.' });
