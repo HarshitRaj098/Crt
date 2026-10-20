@@ -313,8 +313,17 @@ screen.classList.add('glitch');
  const buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buf);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);
  const loc=gl.getAttribLocation(prog,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
  const res=gl.getUniformLocation(prog,'res'),time=gl.getUniformLocation(prog,'t');
- function draw(now){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.5);const W=Math.round(w*d),H=Math.round(h*d);if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);requestAnimationFrame(draw);}
- requestAnimationFrame(draw);
+ let shaderFrame=0,lastDraw=0;
+ function draw(now){
+   shaderFrame=0;
+   if(document.visibilityState!=='visible'||!canvas.isConnected)return;
+   // Limit the decorative overlay to 30 FPS; video playback remains independent.
+   if(now-lastDraw>=33){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight),d=Math.min(window.devicePixelRatio||1,1.5);const W=Math.round(w*d),H=Math.round(h*d);if(canvas.width!==W||canvas.height!==H){canvas.width=W;canvas.height=H;gl.viewport(0,0,W,H);}gl.uniform2f(res,W,H);gl.uniform1f(time,now*.001);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.drawArrays(gl.TRIANGLES,0,6);lastDraw=now;}
+   shaderFrame=requestAnimationFrame(draw);
+ }
+ const resumeShader=()=>{if(document.visibilityState==='visible'&&canvas.isConnected&&!shaderFrame)shaderFrame=requestAnimationFrame(draw);else if(document.visibilityState!=='visible'&&shaderFrame){cancelAnimationFrame(shaderFrame);shaderFrame=0;}};
+ document.addEventListener('visibilitychange',resumeShader);
+ resumeShader();
 })();
 
 
