@@ -152,6 +152,20 @@ function tuneIn() {
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('playsinline', '');
   viewport.appendChild(frame);
+
+  // A cross-origin iframe cannot reveal whether its page actually played.
+  // Never label a generic iframe load as an embedding failure; provide an explicit external fallback.
+  const fallback = document.createElement('div');
+  fallback.id='crt-frame-fallback';
+  fallback.style.cssText='position:absolute;z-index:7;left:10px;right:10px;bottom:10px;display:none;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#08100fee;border:1px solid #4b7b78;color:#d9fff5;font:11px monospace;text-align:center';
+  const fallbackText=document.createElement('span');
+  fallbackText.textContent=yt ? 'If playback is refused, open this video in YouTube.' : 'If this page does not load, open it directly.';
+  const fallbackButton=document.createElement('button');
+  fallbackButton.className='btn';
+  fallbackButton.textContent=yt ? 'OPEN IN YOUTUBE ↗' : 'OPEN PAGE ↗';
+  fallbackButton.onclick=()=>{const target=yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v='+encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;window.open(target,'_blank')|| (window.location.href=target);};
+  fallback.append(fallbackText,fallbackButton);viewport.appendChild(fallback);
+
   // Create fallback controls before registering asynchronous YouTube error callbacks.
   let youtubePlayerError = false;
   const reportPlayerError = code => {
@@ -169,18 +183,6 @@ function tuneIn() {
     fallback.style.display = 'flex';
   };
 
-  // A cross-origin iframe cannot reveal whether its page actually played.
-  // Never label a generic iframe load as an embedding failure; provide an explicit external fallback.
-  const fallback = document.createElement('div');
-  fallback.id='crt-frame-fallback';
-  fallback.style.cssText='position:absolute;z-index:7;left:10px;right:10px;bottom:10px;display:none;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px;background:#08100fee;border:1px solid #4b7b78;color:#d9fff5;font:11px monospace;text-align:center';
-  const fallbackText=document.createElement('span');
-  fallbackText.textContent=yt ? 'If playback is refused, open this video in YouTube.' : 'If this page does not load, open it directly.';
-  const fallbackButton=document.createElement('button');
-  fallbackButton.className='btn';
-  fallbackButton.textContent=yt ? 'OPEN IN YOUTUBE ↗' : 'OPEN PAGE ↗';
-  fallbackButton.onclick=()=>{const target=yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v='+encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;window.open(target,'_blank')|| (window.location.href=target);};
-  fallback.append(fallbackText,fallbackButton);viewport.appendChild(fallback);
 
   if (yt && embedUrl.includes('/embed/')) {
     const attachPlayerApi = () => {
@@ -210,6 +212,7 @@ function tuneIn() {
       }
     }
   }
+
   // Add a fixed analog tracking defect above the video without touching cross-origin pixels.
   const tracking = document.createElement('div');
   tracking.setAttribute('aria-hidden','true');
