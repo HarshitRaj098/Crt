@@ -13,7 +13,15 @@ export default async function handler(req, res) {
   try {
     const url = new URL('https://www.googleapis.com/youtube/v3/search');
     url.search = new URLSearchParams({ part:'snippet', type:'video', videoEmbeddable:'true', maxResults:'10', q, key }).toString();
-    const upstream = await fetch(url);
+    // Fail quickly instead of leaving the CRT search panel stuck on slow upstream requests.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    let upstream;
+    try {
+      upstream = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
     const data = await upstream.json();
     if (!upstream.ok) return res.status(upstream.status === 403 ? 502 : upstream.status).json({ error: data?.error?.message || 'YouTube API request failed.' });
     return res.status(200).json({ items:(data.items || []).map(item => ({
@@ -22,5 +30,8 @@ export default async function handler(req, res) {
       description:item.snippet?.description || '',
       thumbnail:item.snippet?.thumbnails?.medium?.url || item.snippet?.thumbnails?.default?.url || ''
     })).filter(item => item.videoId) });
-  } catch { return res.status(502).json({ error:'Could not reach YouTube. Try again.' }); }
+  } catch (error) {
+    if (error?.name === 'AbortError') return res.status(504).json({ error:'YouTube search timed out. Please try again.' });
+    return res.status(502).json({ error:'Could not reach YouTube. Try again.' });
+  }
 }
