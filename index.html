@@ -130,10 +130,14 @@ function tuneIn() {
   let embedUrl = url;
   if (yt) {
     const u = new URL(url);
-    let id = u.hostname === 'youtu.be' ? u.pathname.slice(1) : u.searchParams.get('v');
-    if (u.pathname.startsWith('/embed/')) id = u.pathname.split('/')[2];
-    if (id && !u.pathname.startsWith('/results')) embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
-    else if (u.pathname.startsWith('/results')) embedUrl = url;
+    const parts = u.pathname.split('/').filter(Boolean);
+    let id = u.hostname === 'youtu.be' ? parts[0] : u.searchParams.get('v');
+    if (['embed', 'shorts', 'live', 'v'].includes(parts[0])) id = parts[1] || id;
+    if (id && !u.pathname.startsWith('/results')) {
+      // Strip accidental playlist/time suffixes from pasted IDs before building the embed URL.
+      id = id.split(/[?&#/]/)[0];
+      embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin);
+    } else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
   viewport.innerHTML = '';
