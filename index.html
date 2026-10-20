@@ -173,6 +173,7 @@ function tuneIn() {
 
   // Create fallback controls before registering asynchronous YouTube error callbacks.
   let youtubePlayerError = false;
+  let youtubePlayerReady = false;
   const reportPlayerError = code => {
     youtubePlayerError = true;
     const messages = {
@@ -195,7 +196,7 @@ function tuneIn() {
       try {
         new window.YT.Player(frame, {
           events: {
-            onReady: () => { if (!youtubePlayerError) displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
+            onReady: () => { youtubePlayerReady = true; if (!youtubePlayerError) displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
             onError: event => reportPlayerError(event.data)
           }
         });
@@ -252,12 +253,17 @@ function tuneIn() {
     if (!youtubePlayerError) displayStatus.textContent = 'PAGE RESPONSE RECEIVED';
   });
   window.setTimeout(() => {
-    if (frame.isConnected && !pageLoaded) {
+    if (!frame.isConnected) return;
+    if (yt && embedUrl.includes('/embed/') && !youtubePlayerReady && !youtubePlayerError) {
+      displayStatus.textContent = 'PLAYER NOT READY — OPEN EXTERNALLY';
+      fallbackText.textContent = 'The embedded player did not become ready. Open this video directly in YouTube.';
+      fallback.style.display = 'flex';
+    } else if (!pageLoaded) {
       displayStatus.textContent = 'IF PAGE IS BLANK, USE OPEN PAGE';
-    } else if (frame.isConnected) {
-      if (!youtubePlayerError) displayStatus.textContent = 'CHECK PLAYER — EXTERNAL FALLBACK AVAILABLE';
+    } else if (!youtubePlayerError) {
+      displayStatus.textContent = 'CHECK PLAYER — EXTERNAL FALLBACK AVAILABLE';
     }
-  }, 5000);
+  }, 8000);
 }
 let ytApiPanel=null;
 document.getElementById('apiYoutubeSearch').addEventListener('click',()=>{
