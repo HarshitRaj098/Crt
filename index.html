@@ -178,7 +178,7 @@ function tuneIn() {
         displayStatus.textContent = 'INVALID YOUTUBE VIDEO ID';
         return;
       }
-      embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=0&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '&widget_referrer=' + encodeURIComponent(location.origin + '/');
+      embedUrl = 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?autoplay=1&mute=1&rel=0&playsinline=1&enablejsapi=1&origin=' + encodeURIComponent(location.origin) + '&widget_referrer=' + encodeURIComponent(location.origin + '/');
     } else if (u.pathname.startsWith('/results')) embedUrl = url;
     else embedUrl = 'https://www.youtube-nocookie.com';
   }
@@ -190,7 +190,7 @@ function tuneIn() {
   frame.referrerPolicy = 'strict-origin-when-cross-origin';
   frame.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
   // Make the site's cross-origin referrer policy explicit for YouTube's embedded-player client check.
-  frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+  frame.setAttribute('allow', 'autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
   frame.setAttribute('loading', 'eager');
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('playsinline', '');
