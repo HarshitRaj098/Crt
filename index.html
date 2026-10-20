@@ -326,6 +326,7 @@ document.getElementById('mediaFile').onchange=e=>{
    src.addEventListener('error',()=>{displayStatus.textContent='VIDEO FORMAT NOT SUPPORTED';},{once:true});
  }
  viewport.appendChild(src);
+ src.addEventListener('error',()=>{stopMediaRender();},{once:true});
  src.src=crtMediaURL;
  const c=document.createElement('canvas');c.style.cssText='position:absolute;inset:0;width:100%;height:100%';viewport.appendChild(c);
  const gl=c.getContext('webgl',{alpha:false,antialias:false});if(!gl){c.remove();src.style.cssText='position:absolute;inset:0;width:100%;height:100%;opacity:1;object-fit:contain;background:#05090d';if(isVideo){src.controls=true;src.muted=false;src.autoplay=false;src.play().catch(()=>{});}displayStatus.textContent='WEBGL UNAVAILABLE — USING DIRECT MEDIA';return;}
@@ -336,8 +337,10 @@ document.getElementById('mediaFile').onchange=e=>{
  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]),gl.STATIC_DRAW);const a=gl.getAttribLocation(p,'p');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  const res=gl.getUniformLocation(p,'res'),time=gl.getUniformLocation(p,'t');gl.uniform1i(gl.getUniformLocation(p,'tex'),0);
- const draw=now=>{if(!c.isConnected)return;const d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.round(c.clientWidth*d)),h=Math.max(1,Math.round(c.clientHeight*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}if((isVideo&&src.readyState>=2)||(!isVideo&&src.complete&&src.naturalWidth)){try{gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(res,w,h);gl.uniform1f(time,now*.001);gl.drawArrays(gl.TRIANGLES,0,6);displayStatus.textContent='MEDIA SHADER ACTIVE';}catch(_){displayStatus.textContent='MEDIA DECODE ERROR';}}requestAnimationFrame(draw);};
- src.addEventListener('loadeddata',()=>src.play?.().catch(()=>{}));src.onload=()=>{};requestAnimationFrame(draw);src.play?.().catch(()=>{});
+ let mediaFrame=0,mediaFailed=false;
+ const draw=now=>{if(!c.isConnected)return;const d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.round(c.clientWidth*d)),h=Math.max(1,Math.round(c.clientHeight*d));if(c.width!==w||c.height!==h){c.width=w;c.height=h;gl.viewport(0,0,w,h);}if((isVideo&&src.readyState>=2)||(!isVideo&&src.complete&&src.naturalWidth)){try{gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);gl.uniform2f(res,w,h);gl.uniform1f(time,now*.001);gl.drawArrays(gl.TRIANGLES,0,6);if(!mediaFailed)displayStatus.textContent='MEDIA SHADER ACTIVE';}catch(_){mediaFailed=true;displayStatus.textContent='MEDIA DECODE ERROR';}}mediaFrame=requestAnimationFrame(draw);};
+ const stopMediaRender=()=>{if(mediaFrame)cancelAnimationFrame(mediaFrame);mediaFrame=0;};
+ src.addEventListener('loadeddata',()=>src.play?.().catch(()=>{}));src.onload=()=>{};mediaFrame=requestAnimationFrame(draw);src.play?.().catch(()=>{});
 };
 
 function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
