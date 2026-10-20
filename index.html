@@ -233,13 +233,14 @@ function tuneIn() {
   };
 
 
+  let youtubePlayer = null;
   if (yt && embedUrl.includes('/embed/')) {
     const attachPlayerApi = () => {
       if (!frame.isConnected || !window.YT?.Player) return;
       try {
-        new window.YT.Player(frame, {
+        youtubePlayer = new window.YT.Player(frame, {
           events: {
-            onReady: () => { youtubePlayerReady = true; if (!youtubePlayerError) displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
+            onReady: () => { youtubePlayerReady = true; if (!youtubePlayerError) displayStatus.textContent = 'YOUTUBE PLAYER READY — TAP VIDEO SOUND TO UNMUTE'; },
             onError: event => reportPlayerError(event.data)
           }
         });
@@ -293,6 +294,29 @@ function tuneIn() {
   soundToggle.setAttribute('aria-pressed','false');
   soundToggle.setAttribute('aria-label','Enable or disable CRT glitch sound effects');
   viewport.appendChild(soundToggle);
+  const videoSoundToggle=document.createElement('button');
+  videoSoundToggle.className='crt-sound-toggle';
+  videoSoundToggle.style.left='9px';
+  videoSoundToggle.style.right='auto';
+  videoSoundToggle.textContent='♫ VIDEO SOUND: TAP TO ENABLE';
+  videoSoundToggle.setAttribute('aria-label','Enable sound for the YouTube video');
+  videoSoundToggle.onclick=()=>{
+    if(!youtubePlayer||!youtubePlayerReady){
+      displayStatus.textContent='VIDEO PLAYER STILL LOADING — TAP AGAIN';
+      return;
+    }
+    try{
+      youtubePlayer.unMute();
+      youtubePlayer.setVolume(100);
+      youtubePlayer.playVideo();
+      videoSoundToggle.textContent='♫ VIDEO SOUND: ON';
+      displayStatus.textContent='VIDEO SOUND ENABLED';
+    }catch(_){
+      displayStatus.textContent='USE THE YOUTUBE PLAYER VOLUME CONTROL';
+    }
+  };
+  viewport.appendChild(videoSoundToggle);
+  if(!yt||!embedUrl.includes('/embed/'))videoSoundToggle.style.display='none';
   let crtSfxEnabled=false,crtAudioContext=null,glitchTimer=0;
   const playCrtZap=()=>{
     if(!crtSfxEnabled)return;
