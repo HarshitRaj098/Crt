@@ -146,6 +146,45 @@ function tuneIn() {
   frame.setAttribute('allowfullscreen', '');
   frame.setAttribute('playsinline', '');
   viewport.appendChild(frame);
+  // Use YouTube's official IFrame Player API to surface real player errors instead of guessing.
+  if (yt && embedUrl.includes('/embed/')) {
+    const videoId = new URL(embedUrl).pathname.split('/').pop();
+    const reportPlayerError = code => {
+      const messages = {
+        2: 'YouTube rejected the video ID or player parameter.',
+        5: 'This video cannot be played in the current HTML5 player.',
+        100: 'This video was removed or is private.',
+        101: 'The owner has disabled embedded playback for this video.',
+        150: 'The owner has disabled embedded playback for this video.',
+        153: 'YouTube rejected the player client identification. The embed referrer or client context is missing.'
+      };
+      displayStatus.textContent = 'YOUTUBE ERROR ' + code;
+      fallbackText.textContent = messages[code] || 'YouTube player error ' + code + '. Open the video in YouTube.';
+      fallback.style.display = 'flex';
+    };
+    const attachPlayerApi = () => {
+      if (!frame.isConnected || !window.YT?.Player) return;
+      try {
+        new window.YT.Player(frame, {
+          events: {
+            onReady: () => { displayStatus.textContent = 'YOUTUBE PLAYER READY'; },
+            onError: event => reportPlayerError(event.data)
+          }
+        });
+      } catch (_) { displayStatus.textContent = 'YOUTUBE PLAYER API INIT FAILED'; }
+    };
+    if (window.YT?.Player) attachPlayerApi();
+    else {
+      window.onYouTubeIframeAPIReady = attachPlayerApi;
+      if (!document.querySelector('script[data-youtube-iframe-api]')) {
+        const apiScript = document.createElement('script');
+        apiScript.src = 'https://www.youtube.com/iframe_api';
+        apiScript.async = true;
+        apiScript.dataset.youtubeIframeApi = 'true';
+        document.head.appendChild(apiScript);
+      }
+    }
+  }
   // A cross-origin iframe cannot reveal whether its page actually played.
   // Never label a generic iframe load as an embedding failure; provide an explicit external fallback.
   const fallback = document.createElement('div');
