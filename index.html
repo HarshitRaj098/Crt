@@ -163,16 +163,21 @@ function tuneIn() {
   // Add a fixed analog tracking defect above the video without touching cross-origin pixels.
   const tracking = document.createElement('div');
   tracking.setAttribute('aria-hidden','true');
+  // Keep CRT tracking effects away from YouTube's interactive controls.
   tracking.style.cssText='pointer-events:none;position:absolute;z-index:4;inset:0;overflow:hidden;mix-blend-mode:screen;background:linear-gradient(180deg,transparent 0%,transparent 31%,rgba(0,225,255,.20) 32%,rgba(0,225,255,.04) 34%,transparent 37%,rgba(0,225,255,.15) 47%,rgba(0,225,255,.04) 49%,transparent 52%,rgba(0,220,255,.17) 72%,rgba(0,220,255,.26) 82%,rgba(0,220,255,.07) 93%,transparent 100%);';
   tracking.innerHTML='<div style="position:absolute;left:-4%;top:34%;width:108%;height:2px;background:#53f4ff;opacity:.62;box-shadow:0 0 8px #00dfff"></div><div style="position:absolute;left:0;top:47%;width:100%;height:3px;background:repeating-linear-gradient(90deg,transparent 0 13px,#35eaff 14px 72px,transparent 73px 105px);opacity:.6;transform:translateX(-1%)"></div><div style="position:absolute;left:0;top:73%;width:100%;height:22%;background:linear-gradient(180deg,transparent,rgba(37,220,255,.24),rgba(37,220,255,.12));"></div><div style="position:absolute;left:56%;top:72%;width:26%;height:12%;background:radial-gradient(ellipse,rgba(255,70,165,.44),transparent 70%);"></div>';
+  // Overlay effects are decorative only: never intercept taps intended for the iframe player.
+  tracking.style.pointerEvents = 'none';
   viewport.appendChild(tracking);
   const external = document.createElement('button');
   external.className = 'btn';
   external.textContent = 'OPEN IN FULL BROWSER ↗';
   external.style.cssText = 'position:absolute;right:8px;bottom:8px;z-index:8;background:#101910ee;max-width:95%;white-space:normal';
+  if (yt) external.textContent = 'OPEN IN YOUTUBE ↗';
   external.addEventListener('click', () => {
-    const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) window.location.assign(url);
+    const target = yt && embedUrl.includes('/embed/') ? 'https://www.youtube.com/watch?v=' + encodeURIComponent(new URL(embedUrl).pathname.split('/').pop()) : url;
+    const opened = window.open(target, '_blank');
+    if (!opened) window.location.assign(target);
   });
   viewport.appendChild(external);
   displayStatus.textContent = 'LOADING PAGE…';
